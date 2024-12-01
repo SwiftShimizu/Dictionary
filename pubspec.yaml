@@ -23,5 +23,7 @@ dev_dependencies:
   build_runner: ^2.4.13
   json_serializable: ^6.9.0
 flutter:
+  assets:
+    - assets/dummy.png
   uses-material-design: true
 
