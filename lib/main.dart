@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import 'modules/characters/character.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -12,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: const MyHomePage(),
+      home: MyHomePage(),
     );
   }
 }
@@ -35,7 +37,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _fetchCharacters() async {
     final response = await Dio().get(_apiUrl);
-    print(response);
+    final List<dynamic> data = response.data["Characters"];
+    final characters = data.map((data) => Character.fromJson(data)).toList();
+    print(characters);
   }
 
   @override
