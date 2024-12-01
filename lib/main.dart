@@ -28,20 +28,48 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _apiUrl = "https://narutodb.xyz/api/character";
+  final _limit = 15;
+  final ScrollController _scrollController = ScrollController();
   List<Character> _characters = [];
+  int _page = 1;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _fetchCharacters();
+    _scrollController.addListener(() {
+      if (_scrollController.position.maxScrollExtent - 100 <
+          _scrollController.offset) {
+        _fetchCharacters();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchCharacters() async {
-    final response = await Dio().get(_apiUrl);
+    if (_isLoading) {
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+    });
+    final response = await Dio()
+        .get(_apiUrl, queryParameters: {"page": _page, "limit": _limit});
     final List<dynamic> data = response.data["characters"];
 
     setState(() {
-      _characters = data.map((data) => Character.fromJson(data)).toList();
+      _characters = [
+        ..._characters,
+        ...data.map((data) => Character.fromJson(data))
+      ];
+      _page++;
+      _isLoading = false;
     });
   }
 
@@ -55,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView.builder(
+          controller: _scrollController,
           itemCount: _characters.length,
           itemBuilder: (context, index) {
             final character = _characters[index];
@@ -79,8 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   Padding(
                     padding: const EdgeInsets.all(8),
                     child: Text(
-                      "テストキャラクター",
-                      style: TextStyle(
+                      character.name,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -89,8 +118,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   Padding(
                     padding: const EdgeInsets.only(left: 8, bottom: 8),
                     child: Text(
-                      "なし",
-                      style: TextStyle(
+                      character.debut?["appearsIn"]?.toString() ?? "なし",
+                      style: const TextStyle(
                         fontSize: 14,
                       ),
                     ),
